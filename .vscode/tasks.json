@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Initialize Flower Foundry MySQL database",
+			"type": "shell",
+			"command": "C:\\xampp\\php\\php.exe",
+			"args": [
+				"setup.php"
+			],
+			"problemMatcher": []
+		}
+	]
+}
