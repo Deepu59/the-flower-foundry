@@ -18,7 +18,6 @@ function app_config(): array
             throw new RuntimeException('config.php must return an array of settings.');
         }
         $config = $loadedConfig + [
-            'db_port' => 3306,
             'base_url' => '',
             'contact_email' => '',
             'site_url' => '',
@@ -39,7 +38,9 @@ function app_config(): array
         if (preg_match('/[\s;#]/', $config['db_host'])) {
             throw new RuntimeException('The database host in config.php contains invalid characters.');
         }
-        $port = filter_var($config['db_port'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 65535]]);
+        $port = isset($config['db_port'])
+            ? filter_var($config['db_port'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 65535]])
+            : false;
         if ($port === false) {
             throw new RuntimeException('Set a valid db_port value in config.php.');
         }
@@ -105,6 +106,15 @@ function db(): PDO
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
     return $connection;
+}
+
+function log_app_error(string $context, Throwable $error): void
+{
+    $line = sprintf("[%s] %s: %s\n", gmdate('c'), $context, $error->getMessage());
+    $logFile = APP_ROOT . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'flower-foundry.log';
+    if (@file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX) === false) {
+        error_log(rtrim($line));
+    }
 }
 
 function install_schema(PDO $pdo): void
@@ -319,5 +329,3 @@ function datetime_label(int|string|null $milliseconds): string
         ->setTimezone(new DateTimeZone('Asia/Kathmandu'))
         ->format('j M Y, H:i');
 }
-
-start_app_session();

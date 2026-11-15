@@ -11,15 +11,20 @@ try {
     start_app_session();
     $pdo = db();
     $pdo->query('SELECT 1 FROM products LIMIT 1');
+} catch (PDOException $error) {
+    log_app_error('Database connection or schema failed', $error);
+    http_response_code(503);
+    echo '<!doctype html><html lang="en"><meta charset="utf-8"><title>Database setup required</title><body style="font:16px system-ui;max-width:680px;margin:4rem auto;padding:0 1rem"><h1>Database setup required</h1><p>Check the database host, port, name, username and password in config.php. On a hosting account, import database/schema.sql using phpMyAdmin.</p><p>For diagnostics, temporarily open <code>check.php</code>. Detailed errors are logged privately under <code>data/</code>.</p></body></html>';
+    exit;
 } catch (RuntimeException $error) {
-    error_log('Flower Foundry configuration failed: ' . $error->getMessage());
+    log_app_error('Configuration failed', $error);
     http_response_code(503);
     echo '<!doctype html><html lang="en"><meta charset="utf-8"><title>Configuration required</title><body style="font:16px system-ui;max-width:680px;margin:4rem auto;padding:0 1rem"><h1>Configuration required</h1><p>Copy <code>config.example.php</code> to <code>config.php</code> and enter your database settings. See README.md.</p></body></html>';
     exit;
-} catch (PDOException $error) {
-    error_log('Flower Foundry database connection failed: ' . $error->getMessage());
+} catch (Throwable $error) {
+    log_app_error('Application startup failed', $error);
     http_response_code(503);
-    echo '<!doctype html><html lang="en"><meta charset="utf-8"><title>Database setup required</title><body style="font:16px system-ui;max-width:680px;margin:4rem auto;padding:0 1rem"><h1>MySQL setup required</h1><p>Start Apache and MySQL in XAMPP, create the Flower Foundry database, and run <code>php setup.php</code> as described in README.md.</p><p>The database connection or schema is not ready yet.</p></body></html>';
+    echo '<!doctype html><html lang="en"><meta charset="utf-8"><title>Application unavailable</title><body style="font:16px system-ui;max-width:680px;margin:4rem auto;padding:0 1rem"><h1>Application unavailable</h1><p>Check that the required PHP extensions are enabled and the database is configured correctly. Temporarily open <code>check.php</code> for diagnostics.</p></body></html>';
     exit;
 }
 

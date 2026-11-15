@@ -9,16 +9,21 @@ header('X-Frame-Options: DENY');
 
 try {
     app_config();
+    start_app_session();
     $pdo = db();
     $adminCount = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
-} catch (RuntimeException $error) {
-    error_log('Flower Foundry admin setup configuration failed: ' . $error->getMessage());
-    http_response_code(503);
-    exit('Admin setup is unavailable. Check config.php and try again.');
 } catch (PDOException $error) {
-    error_log('Flower Foundry admin setup database failed: ' . $error->getMessage());
+    log_app_error('Admin setup database failed', $error);
     http_response_code(503);
     exit('Admin setup is unavailable. Check the database settings and import database/schema.sql in phpMyAdmin first.');
+} catch (RuntimeException $error) {
+    log_app_error('Admin setup configuration failed', $error);
+    http_response_code(503);
+    exit('Admin setup is unavailable. Check config.php and try again.');
+} catch (Throwable $error) {
+    log_app_error('Admin setup startup failed', $error);
+    http_response_code(503);
+    exit('Admin setup is unavailable. Check the PHP extensions and database settings.');
 }
 
 if ($adminCount > 0) {
@@ -57,11 +62,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         session_regenerate_id(true);
         $_SESSION['flash_success'] = 'Admin account created. Log in with your new credentials.';
         redirect_to('login');
+    } catch (PDOException $error) {
+        log_app_error('Admin account creation failed', $error);
+        $errorMessage = 'The admin account could not be created. Please try again.';
     } catch (RuntimeException $error) {
         $errorMessage = $error->getMessage();
-    } catch (PDOException $error) {
-        error_log('Flower Foundry admin account creation failed: ' . $error->getMessage());
-        $errorMessage = 'The admin account could not be created. Please try again.';
     }
 }
 ?>

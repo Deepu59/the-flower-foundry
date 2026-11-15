@@ -15,7 +15,7 @@ THE FLOWER FOUNDRY is a Nepalgunj flower shop built with PHP, MySQL, HTML, CSS, 
 
 - PHP 8.1 or later
 - MySQL or MariaDB, with a database and user created by the hosting control panel
-- PHP extensions `pdo_mysql`, `fileinfo`, and `mbstring`
+- PHP extensions `PDO` with `pdo_mysql`, `mbstring`, `fileinfo`, `session`, and `json`. `curl` is optional and is used only for the eSewa transaction status check.
 - A writable `data/uploads` directory for admin product photos
 
 ## Local setup with XAMPP
@@ -50,7 +50,9 @@ Choose a host that supports PHP 8.1+, MySQL/MariaDB, the required PHP extensions
 7. Visit `https://your-domain.example/setup-admin.php` and enter the admin email and a unique password of at least 15 characters. The password is stored as a hash, and the initial catalog is seeded if it is empty. This page returns 404 after an admin account exists; remove `setup-admin.php` from the web root after setup as an extra precaution.
 8. Open the public site over HTTPS and test customer registration, cart/checkout, and the admin dashboard.
 
-The root `.htaccess` blocks direct requests to configuration files on Apache hosts. Keep `config.php`, local databases, logs, and uploaded files out of the Git repository regardless.
+If the site shows an HTTP 500 error, temporarily upload and visit `check.php` to view the PHP version, required extensions, folder permissions, and a database connection check. It never displays configuration values. Delete `check.php` from the host after troubleshooting. Detailed application errors are written to `data/flower-foundry.log`; the `data` directory is blocked from direct web access.
+
+The root `.htaccess` blocks direct requests to `config.php`, `includes/`, `database/`, and `data/` on Apache hosts. Keep `config.php`, local databases, logs, and uploaded files out of the Git repository regardless.
 
 ## Demo flow
 
